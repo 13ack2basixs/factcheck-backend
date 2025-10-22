@@ -1,29 +1,34 @@
 package com.hongwei.factcheck.service;
 
 import com.hongwei.factcheck.controller.ScrapeController.ScrapeResponse;
+import net.dankito.readability4j.Article;
+import net.dankito.readability4j.Readability4J;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Service
 public class ScrapeService {
 
     public ScrapeResponse fetch(String rawUrl) {
         try {
-            Document doc = Jsoup.connect(rawUrl)
-                .userAgent("Mozilla/5.0 (compatible; FactCheckBot/1.0)")
-                .referrer("https://google.com")
-                .timeout(10_000)
-                .followRedirects(true)
-                .maxBodySize(0)
-                .get();
+            String html = Jsoup.connect(rawUrl).get().outerHtml();
 
-            String title = doc.title();
-            String text = doc.body() != null ? doc.body().text() : "";
+            Readability4J r4j = new Readability4J(rawUrl, html);
+            Article text = r4j.parse();
+            String title = text.getTitle();
+            String content = text.getTextContent();
 
-            return new ScrapeResponse(200, rawUrl, title, text);
-        } catch (Exception e) {
-            return new ScrapeResponse(400, rawUrl, null, "Fetch failed: " + e.getMessage());
+            return new ScrapeResponse(200, rawUrl, title, content);
+        } catch (HttpStatusException e) {
+            int code = e.getStatusCode();
+            String message = "Fetch failed: ";
+            if (code == 403) message = "Paywall restriction: ";
+            return new ScrapeResponse(code, rawUrl, null, message + e.getMessage());
+        } catch (IOException e) {
+            return new ScrapeResponse(502, rawUrl, null, e.getMessage());
         }
     }
 }

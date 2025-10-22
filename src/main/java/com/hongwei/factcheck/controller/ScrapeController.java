@@ -19,6 +19,4 @@ public class ScrapeController {
         var result = scraper.fetch(url);
         return ResponseEntity.status(result.status()).body(result);
     }
-
-
 }
