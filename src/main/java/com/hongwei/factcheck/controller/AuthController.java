@@ -1,5 +1,7 @@
 package com.hongwei.factcheck.controller;
 
+import com.hongwei.factcheck.dto.AuthResponse;
+import com.hongwei.factcheck.dto.LoginRequest;
 import com.hongwei.factcheck.dto.RegisterRequest;
 import com.hongwei.factcheck.dto.UserResponse;
 import com.hongwei.factcheck.service.UserService;
@@ -18,5 +20,10 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED) // Sets HTTP code that endpoint returns
     public UserResponse register(@RequestBody @Valid RegisterRequest request) {
         return userService.register(request);
+    }
+
+    @PostMapping("/login")
+    public AuthResponse login(@RequestBody @Valid LoginRequest request) {
+        return userService.login(request);
     }
 }

@@ -1,5 +1,7 @@
 package com.hongwei.factcheck.service;
 
+import com.hongwei.factcheck.dto.AuthResponse;
+import com.hongwei.factcheck.dto.LoginRequest;
 import com.hongwei.factcheck.dto.RegisterRequest;
 import com.hongwei.factcheck.dto.UserResponse;
 import com.hongwei.factcheck.repository.UserRepository;
@@ -14,6 +16,15 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    // Build UserResponse DTO
+    private UserResponse toUserResponse(User user) {
+        return UserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .createdAt(user.getCreatedAt())
+                .build();
+    }
 
     // If this method throws runtime exception, database operations rolled back
     @Transactional
@@ -36,10 +47,29 @@ public class UserService {
         User saved = userRepository.save(user);
 
         // Map to response DTO
-        return UserResponse.builder()
-                .id(saved.getId())
-                .email(saved.getEmail())
-                .createdAt(saved.getCreatedAt())
+        return toUserResponse(saved);
+    }
+
+    @Transactional
+    public AuthResponse login(LoginRequest request) {
+        // Find user by email
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+
+        // Verify raw password from client vs hashed password in database
+        boolean isMatch = passwordEncoder.matches(
+                request.getPassword(), user.getPasswordHash()
+        );
+
+        if (!isMatch) throw new IllegalArgumentException(("INvalid email or password"));
+
+        // Generate JWT
+        String token = "PLACEHOLDER_TOKEN";
+
+        return AuthResponse.builder() // Build AuthResponse DTO
+                .accessToken(token)
+                .tokenType("Bearer")
+                .user(toUserResponse(user))
                 .build();
     }
 }
