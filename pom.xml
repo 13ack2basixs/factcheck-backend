@@ -32,6 +32,11 @@
 	</properties>
 	<dependencies>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>net.dankito.readability4j</groupId>
             <artifactId>readability4j</artifactId>
             <version>1.0.8</version>
