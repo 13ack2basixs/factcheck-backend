@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     // Build UserResponse DTO
     private UserResponse toUserResponse(User user) {
@@ -61,10 +62,10 @@ public class UserService {
                 request.getPassword(), user.getPasswordHash()
         );
 
-        if (!isMatch) throw new IllegalArgumentException(("INvalid email or password"));
+        if (!isMatch) throw new IllegalArgumentException(("Invalid email or password"));
 
         // Generate JWT
-        String token = "PLACEHOLDER_TOKEN";
+        String token = jwtService.generateToken(user);
 
         return AuthResponse.builder() // Build AuthResponse DTO
                 .accessToken(token)
